@@ -29,7 +29,7 @@ def preprocess_input_data(df: pd.DataFrame, ohe: OneHotEncoder, mms: MinMaxScale
 
     # Definir columnas para las transformaciones 
     categorical_cols = ['genre', 'preferred_course_1', 'preferred_course_2', 'preferred_course_3',
-                        'type_school', 'area', 'nivel_socioeconomico']
+                        'type_school', 'area', 'area2', 'nivel_socioeconomico']
     numeric_cols = ['empathy_level', 'listen_level', 'solution_level',
                     'communication_level', 'teamwork_level', 'monthly_cost']
     

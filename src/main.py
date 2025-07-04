@@ -67,7 +67,9 @@ def cast_clean(df):
 
     #Relaccion area - carrera
     area_mapping = {
-        "Ingeniería de Sistemas de Información": "I", "Ingeniería Civil": "I","Ingeniería Industrial": "I",
+        "Ingeniería de Sistemas de Información": "I", 
+        "Ingeniería Civil": "I",
+        "Ingeniería Industrial": "I",
         "Ingeniería Mecatrónica": "I",
         "Ingeniería Electrónica": "I",
         "Ingeniería Ambiental": "E",
@@ -97,6 +99,41 @@ def cast_clean(df):
     }
 
     df["area"] = df["Carrera"].map(area_mapping)
+
+    #Relaccion area2 - carrera
+    area_mapping2 = {
+        "Ingeniería de Sistemas de Información": "C", 
+        "Ingeniería Civil": "E",
+        "Ingeniería Industrial": "C",
+        "Ingeniería Mecatrónica": "E",
+        "Ingeniería Electrónica": "E",
+        "Ingeniería Ambiental": "I",
+        "Arquitectura": "I",
+        "Economía": "H",
+        "Marketing": "H",
+        "Administración": "H",
+        "Ingeniería de Gestión Empresarial": "I",
+        "Contabilidad": "I",
+        "Derecho": "C",
+        "Ciencias de la Comunicación": "A",
+        "Educación": "C",
+        "Psicología": "S",
+        "Diseño Gráfico": "H",
+        "Odontología": "H",
+        "Medicina": "H",
+        "Ingeniería de Minas": "E",
+        "Gastronomía": "S",
+        "Ingeniería Agroindustrial": "C",
+        "Arte": "H",
+        "Medicina Veterinaria": "E",
+        "Ingeniería Biomédica": "S",
+        "Turismo": "C",
+        "Ingeniería de Telecomunicaciones": "E",
+        "Diseño de Modas": "C",
+        "Enfermería": "H",
+    }
+
+    df["area2"] = df["Carrera"].map(area_mapping2)
     
     #Definicion de escalas socioeconomicas segun distrito
     clasificacion_socioeconomica = {
@@ -154,7 +191,7 @@ def pipeline_train_model():
 
     # 2. Definir columnas para la transformación
     categorical_cols = ['genre', 'preferred_course_1', 'preferred_course_2', 'preferred_course_3',
-                        'type_school', 'area', 'nivel_socioeconomico']
+                        'type_school', 'area', 'area2', 'nivel_socioeconomico']
     numeric_cols = ['empathy_level', 'listen_level', 'solution_level',
                     'communication_level', 'teamwork_level', 'monthly_cost']
     target_col = 'Carrera' # El nombre original del target
@@ -203,8 +240,7 @@ def pipeline_train_model():
     model_rf = RandomForestClassifier(
         n_estimators=300,
         max_depth=20,
-        min_samples_leaf=1,
-        random_state=42
+        min_samples_leaf=1
     )
     model_rf.fit(X_resampled, y_resampled)
     joblib.dump(model_rf, os.path.join(models_dir, 'final_model.joblib'))

@@ -23,6 +23,7 @@ _onehot_encoder = None
 _minmax_scaler = None
 _label_encoder_target = None
 
+# --- Cargar archivos de transformacion y modelo entrenado ---
 def _load_assets():
     """
     Carga el modelo y los transformadores si aún no están cargados.
@@ -50,6 +51,7 @@ def _load_assets():
             raise RuntimeError(f"Error al cargar los activos del modelo: {e}")
     return _model, _onehot_encoder, _minmax_scaler, _label_encoder_target
 
+# --- Realizar la prediccion segun la informacion recibida ---
 def make_prediction(input_data: dict):
     
     model, ohe, mms, label_encoder_target = _load_assets()
@@ -75,19 +77,14 @@ def make_prediction(input_data: dict):
                          "Verifica el formato y los tipos de tus datos.")
 
     # Realizar la predicción con los datos preprocesados
-    prediction_encoded_top = model.predict(processed_input_df)[0] # Índice de la clase más probable
-    prediction_probabilities_all = model.predict_proba(processed_input_df)[0] # Array con todas las probabilidades
-
-    # Convertir a lista (si no lo es ya)
+    prediction_probabilities_all = model.predict_proba(processed_input_df)[0] 
     prediction_probabilities_all = np.array(prediction_probabilities_all)
 
-    # Obtener los índices de las 3 clases con mayor probabilidad
-    top_3_indices = prediction_probabilities_all.argsort()[-3:][::-1]  # orden descendente
-
-    # Obtener las probabilidades de esas 3 clases
+    # Obtener los índices y probabiliades de las 3 clases con mayor probabilidad
+    top_3_indices = prediction_probabilities_all.argsort()[-3:][::-1] 
     top_3_probabilities = prediction_probabilities_all[top_3_indices]
 
-    # Normalizar para que sumen 100%
+    # Normalizamos las probabilidades
     total = np.sum(top_3_probabilities)
     normalized_percentages = [round((p / total) * 100.0, 2) for p in top_3_probabilities]
 
