@@ -6,6 +6,8 @@ from sklearn.ensemble import RandomForestClassifier
 import joblib
 import os
 import sys
+import seaborn as sns
+import matplotlib.pyplot as plt
 from sklearn.metrics import (
     accuracy_score,
     precision_score,
@@ -13,7 +15,8 @@ from sklearn.metrics import (
     f1_score,
     cohen_kappa_score,
     roc_auc_score,
-    r2_score
+    r2_score,
+    confusion_matrix
 )
 
 # Añadir el directorio raíz para permitir importaciones desde preprocesamiento y ml
@@ -246,6 +249,66 @@ def pipeline_train_model():
     joblib.dump(model_rf, os.path.join(models_dir, 'final_model.joblib'))
     print(f"Modelo final (RandomForestClassifier) guardado en {os.path.join(models_dir, 'final_model.joblib')}")
 
+    # 7. Análisis de la Importancia de las Características
+    print("\n--- 📈 Análisis de Importancia de Características ---")
+    
+    # Obtener las importancias de las características del modelo entrenado
+    importances = model_rf.feature_importances_
+    
+    # Obtener los nombres de las características del DataFrame procesado
+    feature_names = X_processed.columns
+    
+    # Crear un DataFrame para una mejor visualización
+    feature_importance_df = pd.DataFrame({
+        'feature': feature_names,
+        'importance': importances
+    }).sort_values(by='importance', ascending=False)
+
+    # Agrupar la importancia por las variables originales
+    print("\n--- 📊 Importancia de Características Agrupada ---")
+
+    # Obtener el mapeo de columnas codificadas a originales
+    feature_mapping = {}
+    for col in categorical_cols:
+        for encoded_col in [c for c in feature_names if c.startswith(col + '_')]:
+            feature_mapping[encoded_col] = col
+    
+    # Crear un DataFrame con las importancias y el mapeo
+    grouped_importance_df = feature_importance_df.copy()
+    grouped_importance_df['group'] = grouped_importance_df['feature'].apply(
+        lambda x: feature_mapping.get(x, x) # Usa el mapeo para columnas codificadas, si no, usa el nombre original
+    )
+
+    # Sumar la importancia de las columnas dentro de cada grupo
+    final_grouped_importance = grouped_importance_df.groupby('group')['importance'].sum().reset_index()
+    final_grouped_importance = final_grouped_importance.sort_values(by='importance', ascending=False)
+    
+    # Mostrar el resultado agrupado
+    print("Importancia agrupada por variables originales:")
+    print(final_grouped_importance.head(10))
+
+    # Visualizar la importancia de las características agrupadas
+    plt.figure(figsize=(12, 8))
+    sns.barplot(x='importance', y='group', data=final_grouped_importance)
+    plt.title('Importancia de las Variables Originales en el Modelo Random Forest')
+    plt.xlabel('Importancia')
+    plt.ylabel('Variable Original')
+    plt.tight_layout()
+    plt.show()
+    
+    # Mostrar las 10 características más importantes
+    print("Top 10 características más importantes:")
+    print(feature_importance_df.head(10))
+    
+    # Visualizar la importancia de las características
+    plt.figure(figsize=(12, 8))
+    sns.barplot(x='importance', y='feature', data=feature_importance_df.head(20))
+    plt.title('Importancia de las Características en el Modelo Random Forest')
+    plt.xlabel('Importancia (Gini)')
+    plt.ylabel('Característica')
+    plt.tight_layout()
+    plt.show()
+
     #Probamos con los datos de prueba
     y_pred_RandFor = model_rf.predict(X_test)
     y_proba = model_rf.predict_proba(X_test)
@@ -261,6 +324,15 @@ def pipeline_train_model():
     print("ROC AUC (multiclase, OVR):", roc_auc)
     r2 = r2_score(Y_test, y_pred_RandFor)
     print("R² en regresión lineal:", r2)
+
+    cm = confusion_matrix(Y_test, y_pred_RandFor)
+
+    plt.figure(figsize=(10,7))
+    sns.heatmap(cm, annot=True, fmt='d', cmap="Blues", xticklabels=label_encoder.classes_, yticklabels=label_encoder.classes_)
+    plt.xlabel("Predicción")
+    plt.ylabel("Real")
+    plt.title("Matriz de Confusión")
+    plt.show()
 
 
 if __name__ == "__main__":
