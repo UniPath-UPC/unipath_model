@@ -1,2 +1,12 @@
 Flask
 gunicorn
+joblib
+pandas
+numpy
+sklearn.preprocessing
+sklearn.model_selection
+imblearn.over_sampling
+sklearn.ensemble
+seaborn
+matplotlib.pyplot
+sklearn.metrics
